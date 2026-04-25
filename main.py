@@ -8,8 +8,8 @@ from plexapi.myplex import MyPlexAccount
 from qbittorrentapi import Client
 
 # --- CONFIGURATION ---
-PLEX_USER = "jamesmarquette@gmail.com"
-PLEX_PASS = "&9mhf111"
+PLEX_USER = "username"
+PLEX_PASS = "password"
 
 QBIT_HOST = "127.0.0.1"
 QBIT_PORT = 8080
