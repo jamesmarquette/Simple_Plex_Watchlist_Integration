@@ -8,8 +8,8 @@ from plexapi.myplex import MyPlexAccount
 from qbittorrentapi import Client
 
 # --- CONFIGURATION ---
-PLEX_USER = "yourusername"
-PLEX_PASS = "yourpassword"
+PLEX_USER = "jamesmarquette@gmail.com"
+PLEX_PASS = "&9mhf111"
 
 QBIT_HOST = "127.0.0.1"
 QBIT_PORT = 8080
@@ -19,7 +19,7 @@ QBIT_EXE_PATH = r"C:\Program Files\qBittorrent\qbittorrent.exe"
 
 # Filtering & Alerts
 MIN_SEEDERS = 5  # Minimum seeders required to even consider a torrent
-DISCORD_WEBHOOK_URL = ""  # Optional
+# DISCORD_WEBHOOK_URL = ""  # Optional
 
 # File Paths
 HISTORY_FILE = "downloaded_history.txt"
@@ -51,12 +51,12 @@ def clean_title(title):
     return title.strip()
 
 
-def send_discord_notification(title, filename, category, user_name):
-    if not DISCORD_WEBHOOK_URL: return
-    payload = {"embeds": [{"title": f"🚀 Request by {user_name}", "color": 5763719,
-                           "fields": [{"name": "Item", "value": title, "inline": True},
-                                      {"name": "Type", "value": category, "inline": True}]}]}
-    requests.post(DISCORD_WEBHOOK_URL, json=payload)
+#def send_discord_notification(title, filename, category, user_name):
+ #   if not DISCORD_WEBHOOK_URL: return
+ #   payload = {"embeds": [{"title": f"🚀 Request by {user_name}", "color": 5763719,
+ #                          "fields": [{"name": "Item", "value": title, "inline": True},
+ #                                    {"name": "Type", "value": category, "inline": True}]}]}
+ #   requests.post(DISCORD_WEBHOOK_URL, json=payload)
 
 
 def get_history():
@@ -116,7 +116,7 @@ def process_search(qbt_client, search_term, category, user_name, original_title)
         try:
             qbt_client.torrents_add(urls=best['fileUrl'], category=category)
             logging.info(f"✅ Added {category} for {user_name}: {best['fileName']}")
-            send_discord_notification(original_title, best['fileName'], category, user_name)
+           # send_discord_notification(original_title, best['fileName'], category, user_name)
             return True
         except Exception:
             pass
