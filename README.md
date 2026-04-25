@@ -1,7 +1,13 @@
 # Simple_Plex_Watchlist_Integration
 No Warrenties or guarantees. Use at your own risk.
-This python script connects to your local Plex database, retrieves the titles from your watchlist, and then uses qBittorrent's built-in search engine to find and add the best torrent (based on seeds) to your download queue.
+This is for testing and learning purposes only.
+It is wise to always use a VPN on you system that is running qBittorrent. 
+
+This is a much simpler method of automating your Plex requests and downloads.  It is a bit buggy, sometimes it will download incorrect data.  It tries to download full shows with all it's seasons but sometimes it only downloads the 1st season or which ever has the most "seeds" in torrents. 
+
+This python script connects to your local Plex database, retrieves the titles from your users watchlist, and then uses qBittorrent's built-in search engine to find and add the best torrent (based on seeds) to your download queue.
 This was designed for Windows running plex on a windows machine and qBitorrent client on windows.
+Feel free to alter. 
 
 A Python-based automation tool that monitors your Plex Universal Watchlist (and the watchlists of your Plex Home users) to automatically search for and download movies and TV shows via qBittorrent.
 ✨ Features
@@ -13,6 +19,7 @@ Failure Protection: Includes a retry mechanism that cleans titles (removes years
 Health Filtering: Only adds magnet links with a minimum seeder count to ensure fast downloads.
 Notifications: Sends beautiful Discord embeds whenever a new download starts.
 History Tracking: Maintains a local database to prevent duplicate downloads.
+
 🛠️ Prerequisites
 Python 3.8+
 qBittorrent with Web UI enabled:
@@ -21,13 +28,28 @@ Enable "Web User Interface".
 Set the port (default: 8080).
 Search Plugins: Ensure qBittorrent has search plugins installed and updated (Search tab > Search plugins > Check for updates).
 
-📥 Installation
-Clone the repository:
-bash
-git clone https://github.com
-cd Simple_Plex_Watchlist_Integration
+Configuration
+Open main.py and update the CONFIGURATION section:
+python
+PLEX_USER = "YourPlexUsername"
+PLEX_PASS = "YourPlexPassword"
 
-Install dependencies:
-bash
-pip install plexapi qbittorrent-api psutil requests
+# this may need to be altered if running on a different machine
+QBIT_HOST = "127.0.0.1"
+QBIT_PORT = 8080
+QBIT_USER = "admin"
+QBIT_PASS = "adminadmin"
 
+# Update this to your qBittorrent install path
+QBIT_EXE_PATH = r"C:\Program Files\qBittorrent\qbittorrent.exe"
+
+# Optional qBittorrent configuration:
+Create catagories in qBittorrent
+Edit catagories to download to a different folder - perhaps the folders where plex is watching such as Shows, Movies, Music. 
+
+
+Installation:
+Download main.py
+Alter the main.py lines 11 and 12 with your own credentials
+Run Python script. 
+I should look into the plex db find all of your users, check watchlists and search in qBittorrent to download items
