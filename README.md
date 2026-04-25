@@ -1,9 +1,10 @@
 # Simple_Plex_Watchlist_Integration
 No Warrenties or guarantees. Use at your own risk.
+No support will be provided.  Feel free to let me know if you find better ways to do this.  
 This is for testing and learning purposes only.
 It is wise to always use a VPN on you system that is running qBittorrent. 
 
-This is a much simpler method of automating your Plex requests and downloads.  It is a bit buggy, sometimes it will download incorrect data.  It tries to download full shows with all it's seasons but sometimes it only downloads the 1st season or which ever has the most "seeds" in torrents. 
+This is a much simpler method of automating your Plex requests and downloads (probably less secure as well).  It is a bit buggy, sometimes it will download incorrect shows or movies.  It tries to download full shows with all it's seasons but sometimes it only downloads the 1st season or which ever has the most "seeds" in torrents. 
 
 This python script connects to your local Plex database, retrieves the titles from your users watchlist, and then uses qBittorrent's built-in search engine to find and add the best torrent (based on seeds) to your download queue.
 This was designed for Windows running plex on a windows machine and qBitorrent client on windows.
@@ -21,7 +22,19 @@ Notifications: Sends beautiful Discord embeds whenever a new download starts.
 History Tracking: Maintains a local database to prevent duplicate downloads.
 
 🛠️ Prerequisites
-Python 3.8+
+Python 3.x installed.
+qBittorrent Web API: Ensure it is enabled in your qBittorrent settings under Tools > Options > Web UI.
+Python Libraries: Install the required qBittorrent API wrapper.
+In Terminal:
+pip install qbittorrent-api
+pip install plexapi qbittorrent-api
+ 
+Accessing the Local Plex Database
+The Plex database is typically located in your Application Support or Local AppData folder. You can query the metadata_items table to find items where watchlist_id is set. 
+
+Common Database Locations:
+Windows: %LOCALAPPDATA%\Plex Media Server\Plug-in Support\Databases\com.plexapp.plugins.library.db
+
 qBittorrent with Web UI enabled:
 Go to Tools > Options > Web UI.
 Enable "Web User Interface".
