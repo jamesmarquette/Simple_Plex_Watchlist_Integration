@@ -10,25 +10,28 @@ This python script connects to your local Plex database, retrieves the titles fr
 This was designed for Windows running plex on a windows machine and qBitorrent client on windows.
 Feel free to alter. 
 A Python-based automation tool that monitors your Plex Universal Watchlist (and the watchlists of your Plex Home users) to automatically search for and download movies and TV shows via qBittorrent.
+
 ✨ Features
 Multi-User Support: Scans watchlists for the Admin and all Managed Home users.
 Token Authentication: Uses X-Plex-Token for secure, rate-limit-free access to your account.
 High-Accuracy Matching: Uses Regex and Fuzzy logic to ensure correct torrent selection (e.g., skips "Gabby's Dollhouse" for "Dollhouse").
 Smart TV Handling: Detects season counts and searches for full Season Packs.
-Automatic Organization: Assigns categories (Movies/Shows) for automatic folder sorting.
+Automatic Organization: Assigns categories (Movies/Shows) for automatic folder orting.
 Process Management: Launches qBittorrent automatically if it isn't running. 
+
 🛠️ Prerequisites
 Python 3.8+
 qBittorrent with Web UI enabled (Tools > Options > Web UI).
 Search Plugins: Must be updated in qBittorrent (Search tab > Search plugins > Check for updates).
+
 ⚙️ Configuration
 1. Finding your Plex Token
-To avoid rate-limiting errors, this script requires an X-Plex-Token Plex Support .
-Sign in to Plex Web App in your browser Plexopedia .
+To avoid rate-limiting errors, this script requires an X-Plex-Token .
+Sign in to Plex Web App in your browser  .
 Navigate to any movie or episode in your library.
-Click the three dots (...) and select Get Info Reddit .
-Click View XML at the bottom left Wizarr.
-In the new tab that opens, look at the URL in your address bar. Your token is the string after X-Plex-Token= at the very end Reddit . 
+Click the three dots (...) and select Get Info .
+Click View XML at the bottom left .
+In the new tab that opens, look at the URL in your address bar. Your token is the string after X-Plex-Token= at the very end . 
 2. Update main.py
 Paste your token and update the connection details:
 python
@@ -80,7 +83,7 @@ pip install plexapi qbittorrent-api psutil requests
 Use code with caution.
 🚀 Usage
 Run the script manually or set it as a scheduled task:
-bash
+
 python main.py
 Use code with caution.
 📂 Automatic Sorting
