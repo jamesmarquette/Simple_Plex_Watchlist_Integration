@@ -9,17 +9,34 @@ This is a much simpler method of automating your Plex requests and downloads (pr
 This python script connects to your local Plex database, retrieves the titles from your users watchlist, and then uses qBittorrent's built-in search engine to find and add the best torrent (based on seeds) to your download queue.
 This was designed for Windows running plex on a windows machine and qBitorrent client on windows.
 Feel free to alter. 
-
 A Python-based automation tool that monitors your Plex Universal Watchlist (and the watchlists of your Plex Home users) to automatically search for and download movies and TV shows via qBittorrent.
 ✨ Features
 Multi-User Support: Scans watchlists for the Admin and all Managed Home users.
-Smart TV Handling: Automatically detects the number of seasons for a show and searches for full Season Packs.
-Automatic Organization: Assigns qBittorrent categories (Movies or Shows) to ensure files are saved to the correct folders.
-Process Management: Automatically launches qBittorrent on Windows if it isn't running.
-Failure Protection: Includes a retry mechanism that cleans titles (removes years/special chars) if a primary search fails.
-Health Filtering: Only adds magnet links with a minimum seeder count to ensure fast downloads.
-Notifications: Sends beautiful Discord embeds whenever a new download starts.
-History Tracking: Maintains a local database to prevent duplicate downloads.
+Token Authentication: Uses X-Plex-Token for secure, rate-limit-free access to your account.
+High-Accuracy Matching: Uses Regex and Fuzzy logic to ensure correct torrent selection (e.g., skips "Gabby's Dollhouse" for "Dollhouse").
+Smart TV Handling: Detects season counts and searches for full Season Packs.
+Automatic Organization: Assigns categories (Movies/Shows) for automatic folder sorting.
+Process Management: Launches qBittorrent automatically if it isn't running. 
+🛠️ Prerequisites
+Python 3.8+
+qBittorrent with Web UI enabled (Tools > Options > Web UI).
+Search Plugins: Must be updated in qBittorrent (Search tab > Search plugins > Check for updates).
+⚙️ Configuration
+1. Finding your Plex Token
+To avoid rate-limiting errors, this script requires an X-Plex-Token Plex Support .
+Sign in to Plex Web App in your browser Plexopedia .
+Navigate to any movie or episode in your library.
+Click the three dots (...) and select Get Info Reddit .
+Click View XML at the bottom left Wizarr.
+In the new tab that opens, look at the URL in your address bar. Your token is the string after X-Plex-Token= at the very end Reddit . 
+2. Update main.py
+Paste your token and update the connection details:
+python
+PLEX_TOKEN = "PASTE_YOUR_TOKEN_HERE"
+QBIT_HOST = "127.0.0.1"
+QBIT_PORT = 8080
+QBIT_EXE_PATH = r"C:\Program Files\qBittorrent\qbittorrent.exe"
+
 
 🛠️ Prerequisites
 Python 3.x installed.
@@ -41,12 +58,6 @@ Enable "Web User Interface".
 Set the port (default: 8080).
 Search Plugins: Ensure qBittorrent has search plugins installed and updated (Search tab > Search plugins > Check for updates).
 
-Configuration
-Open main.py and update the CONFIGURATION section:
-python
-PLEX_USER = "YourPlexUsername"
-PLEX_PASS = "YourPlexPassword"
-
 # this may need to be altered if running on a different machine
 QBIT_HOST = "127.0.0.1"
 QBIT_PORT = 8080
@@ -60,9 +71,26 @@ QBIT_EXE_PATH = r"C:\Program Files\qBittorrent\qbittorrent.exe"
 Create catagories in qBittorrent
 Edit catagories to download to a different folder - perhaps the folders where plex is watching such as Shows, Movies, Music. 
 
+📥 Installation
+bash
+# Clone and install dependencies
+git clone https://github.com
+cd plex-qbit-automator
+pip install plexapi qbittorrent-api psutil requests
+Use code with caution.
+🚀 Usage
+Run the script manually or set it as a scheduled task:
+bash
+python main.py
+Use code with caution.
+📂 Automatic Sorting
+In qBittorrent, create these categories to enable auto-moving:
+Movies: Set path to your Movie library folder.
+Shows: Set path to your TV library folder.
+Ensure "Automatic Torrent Management" is enabled in qBit settings.
+⚠️ Important Notes
+Security: Never share your X-Plex-Token publicly; it provides full access to your account.
+History: The script creates downloaded_history.txt to avoid duplicate downloads.
+Magnets Only: Only magnet: links are accepted to prevent bencoded string errors. 
 
-Installation:
-Download main.py
-Alter the main.py lines 11 and 12 with your own credentials
-Run Python script. 
-I should look into the plex db find all of your users, check watchlists and search in qBittorrent to download items
+It should look into the plex db find all of your users, check watchlists and search in qBittorrent to download items
