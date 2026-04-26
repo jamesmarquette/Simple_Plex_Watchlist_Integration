@@ -4,12 +4,12 @@ import re
 import requests
 import logging
 import psutil
+from difflib import SequenceMatcher
 from plexapi.myplex import MyPlexAccount
 from qbittorrentapi import Client
 
 # --- CONFIGURATION ---
-PLEX_USER = "username"
-PLEX_PASS = "password"
+PLEX_TOKEN = "InsertTokenFromPlexWebXML"
 
 QBIT_HOST = "127.0.0.1"
 QBIT_PORT = 8080
@@ -18,8 +18,9 @@ QBIT_PASS = "adminadmin"
 QBIT_EXE_PATH = r"C:\Program Files\qBittorrent\qbittorrent.exe"
 
 # Filtering & Alerts
-MIN_SEEDERS = 5  # Minimum seeders required to even consider a torrent
-# DISCORD_WEBHOOK_URL = ""  # Optional
+MIN_SEEDERS = 5
+MATCH_THRESHOLD = 0.8  # 80% similarity (raise to 0.9 if still getting wrong items)
+DISCORD_WEBHOOK_URL = ""
 
 # File Paths
 HISTORY_FILE = "downloaded_history.txt"
@@ -38,25 +39,34 @@ def ensure_qbit_running():
         logging.info("Launching qBittorrent...")
         if os.path.exists(QBIT_EXE_PATH):
             os.startfile(QBIT_EXE_PATH)
-            time.sleep(10)  # Time for WebUI to start
+            time.sleep(10)
         else:
             logging.error("Could not find qBittorrent executable.")
             return False
     return True
 
 
-def clean_title(title):
-    title = re.sub(r'\(\d{4}\)', '', title)  # Remove year
-    title = re.sub(r'[^a-zA-Z0-9\s]', '', title)  # Remove special chars
-    return title.strip()
+def normalize_text(text):
+    """Lowercase and remove everything except letters, numbers, and spaces."""
+    text = text.lower()
+    text = re.sub(r'[^a-z0-9\s]', ' ', text)
+    return ' '.join(text.split())
 
 
-#def send_discord_notification(title, filename, category, user_name):
- #   if not DISCORD_WEBHOOK_URL: return
- #   payload = {"embeds": [{"title": f"🚀 Request by {user_name}", "color": 5763719,
- #                          "fields": [{"name": "Item", "value": title, "inline": True},
- #                                    {"name": "Type", "value": category, "inline": True}]}]}
- #   requests.post(DISCORD_WEBHOOK_URL, json=payload)
+def is_strict_match(target_title, torrent_name):
+    """Regex word boundary and fuzzy similarity check."""
+    clean_target = normalize_text(target_title)
+    clean_torrent = normalize_text(torrent_name)
+
+    # Word Boundary Check: Prevents 'Gabby's Dollhouse' matching 'Dollhouse'
+    pattern = rf"\b{re.escape(clean_target)}\b"
+    if not re.search(pattern, clean_torrent):
+        return False
+
+    # Fuzzy Similarity: Checks if the target represents the bulk of the filename
+    # We compare the target to the start of the torrent name
+    score = SequenceMatcher(None, clean_target, clean_torrent[:len(clean_target) + 5]).ratio()
+    return score >= MATCH_THRESHOLD
 
 
 def get_history():
@@ -70,14 +80,23 @@ def save_to_history(title):
         f.write(f"{title}\n")
 
 
+def send_discord_notification(title, filename, category, user_name):
+    if not DISCORD_WEBHOOK_URL: return
+    payload = {"embeds": [{"title": f"🚀 Request by {user_name}", "color": 5763719,
+                           "fields": [{"name": "Item", "value": title, "inline": True},
+                                      {"name": "Type", "value": category, "inline": True}]}]}
+    try:
+        requests.post(DISCORD_WEBHOOK_URL, json=payload, timeout=5)
+    except:
+        pass
+
+
 def get_all_watchlists():
     items = []
     try:
-        admin = MyPlexAccount(PLEX_USER, PLEX_PASS)
-        # Admin watchlist
+        admin = MyPlexAccount(token=PLEX_TOKEN)
         for item in admin.watchlist():
             items.append((item.title, item.type, admin.username))
-        # Home users
         for user in admin.users():
             try:
                 user_ctx = admin.switchHomeUser(user.title)
@@ -106,17 +125,23 @@ def execute_search(qbt_client, search_term):
 def process_search(qbt_client, search_term, category, user_name, original_title):
     results = execute_search(qbt_client, search_term)
 
-    # FILTER: Must be a magnet link and meet MIN_SEEDERS
+    # Filter for magnets and seeders
     valid = [r for r in results if
              r.get('fileUrl', '').startswith('magnet:') and int(r.get('nbSeeders', 0)) >= MIN_SEEDERS]
 
-    if valid:
-        # Tiebreaker: Pick highest seeder count, then largest file size (for packs)
-        best = max(valid, key=lambda x: (int(x.get('nbSeeders', 0)), int(x.get('size', 0))))
+    filtered_results = []
+    for r in valid:
+        if is_strict_match(original_title, r.get('fileName', '')):
+            filtered_results.append(r)
+        else:
+            logging.debug(f"Blocked mismatch: '{r.get('fileName')}'")
+
+    if filtered_results:
+        best = max(filtered_results, key=lambda x: (int(x.get('nbSeeders', 0)), int(x.get('size', 0))))
         try:
             qbt_client.torrents_add(urls=best['fileUrl'], category=category)
             logging.info(f"✅ Added {category} for {user_name}: {best['fileName']}")
-           # send_discord_notification(original_title, best['fileName'], category, user_name)
+            send_discord_notification(original_title, best['fileName'], category, user_name)
             return True
         except Exception:
             pass
@@ -124,14 +149,13 @@ def process_search(qbt_client, search_term, category, user_name, original_title)
 
 
 def get_season_count(user_name, title):
-    """Checks the number of seasons for a specific show."""
     try:
         admin = MyPlexAccount(PLEX_USER, PLEX_PASS)
         user_ctx = admin if user_name == PLEX_USER else admin.switchHomeUser(user_name)
-        show = user_ctx.search(title, libtype='show')[0]
-        return len(show.seasons())
+        show = user_ctx.search(title, libtype='show')
+        return len(show[0].seasons()) if show else 1
     except:
-        return 1  # Default to 1 if lookup fails
+        return 1
 
 
 def main():
@@ -160,7 +184,6 @@ def main():
                 s_term = f"{title} S{str(s).zfill(2)}"
                 if process_search(qbt, s_term, "Shows", u_name, title):
                     success_count += 1
-
             if success_count > 0:
                 save_to_history(title)
 
